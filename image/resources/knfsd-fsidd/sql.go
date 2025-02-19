@@ -35,36 +35,7 @@ import (
 //go:embed schema.sql
 var tableSchema string
 
-type DB interface {
-	BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func(pgx.Tx) error) error
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Close()
-}
-
-type DBWrapper struct {
-	db DB
-}
-
-func (w *DBWrapper) Close() {
-	if w.db != nil {
-		w.db.Close()
-	}
-}
-
-func (w *DBWrapper) BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func(pgx.Tx) error) error {
-	return w.db.BeginTxFunc(ctx, txOptions, f)
-}
-
-func (w *DBWrapper) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
-	return w.db.Exec(ctx, sql, arguments...)
-}
-
-func (w *DBWrapper) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
-	return w.db.QueryRow(ctx, sql, args...)
-}
-
-func connect(ctx context.Context, config DatabaseConfig) (DB, error) {
+func connect(ctx context.Context, config DatabaseConfig) (*pgxpool.Pool, error) {
 	pgConfig, err := pgxpool.ParseConfig(config.URL)
 	if err != nil {
 		return nil, err
@@ -76,11 +47,11 @@ func connect(ctx context.Context, config DatabaseConfig) (DB, error) {
 		return nil, err
 	}
 
-	return &DBWrapper{db}, err
+	return db, err
 }
 
 type FSIDSource struct {
-	db        DB
+	db        *pgxpool.Pool
 	tableName string
 }
 
