@@ -1,10 +1,7 @@
 socket=/run/fsidd.sock
 
 [database]
-iam-auth=true
-instance=${connection_name}
-url=user=${sql_user} database=${database_name}
-private-ip=${private_ip_address != ""}
+postgresql://${sql_user}:${sql_password}@${database_hostname}:${database_port}/${database_name}
 table-name=fsids
 create-table=true
 

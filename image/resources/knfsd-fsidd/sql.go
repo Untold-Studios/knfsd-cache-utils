@@ -21,12 +21,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"text/template"
 	"time"
 
-	"cloud.google.com/go/cloudsqlconn"
 	"github.com/GoogleCloudPlatform/knfsd-cache-utils/image/resources/knfsd-fsidd/internal/metrics"
 	"github.com/GoogleCloudPlatform/knfsd-cache-utils/image/resources/knfsd-fsidd/log"
 	"github.com/jackc/pgconn"
@@ -45,16 +43,12 @@ type DB interface {
 }
 
 type DBWrapper struct {
-	dialer *cloudsqlconn.Dialer
-	db     DB
+	db DB
 }
 
 func (w *DBWrapper) Close() {
 	if w.db != nil {
 		w.db.Close()
-	}
-	if w.dialer != nil {
-		w.dialer.Close()
 	}
 }
 
@@ -76,56 +70,13 @@ func connect(ctx context.Context, config DatabaseConfig) (DB, error) {
 		return nil, err
 	}
 
-	dialer, err := newDialer(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-
-	pgConfig.ConnConfig.DialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		// ignore the host (addr) requested by pgx and instead use the cloud SQL instance
-		return dialer.Dial(ctx, config.Instance)
-	}
-
 	log.Debug.Print("Creating pgxpool")
 	db, err := pgxpool.ConnectConfig(ctx, pgConfig)
 	if err != nil {
-		dialer.Close()
 		return nil, err
 	}
 
-	return &DBWrapper{dialer, db}, err
-}
-
-func newDialer(ctx context.Context, config DatabaseConfig) (*cloudsqlconn.Dialer, error) {
-	var dialOptions []cloudsqlconn.DialOption
-	var options []cloudsqlconn.Option
-
-	if config.IAMAuth {
-		options = append(options, cloudsqlconn.WithIAMAuthN())
-	}
-
-	if config.PrivateIP {
-		dialOptions = append(dialOptions, cloudsqlconn.WithPrivateIP())
-	} else {
-		dialOptions = append(dialOptions, cloudsqlconn.WithPublicIP())
-	}
-
-	options = append(options, cloudsqlconn.WithDefaultDialOptions(dialOptions...))
-
-	log.Debug.Print("Creating Cloud SQL dialer")
-	dialer, err := cloudsqlconn.NewDialer(ctx, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debug.Print("Warming up Cloud SQL dialer")
-	err = dialer.Warmup(ctx, config.Instance)
-	if err != nil {
-		dialer.Close()
-		return nil, err
-	}
-
-	return dialer, nil
+	return &DBWrapper{db}, err
 }
 
 type FSIDSource struct {

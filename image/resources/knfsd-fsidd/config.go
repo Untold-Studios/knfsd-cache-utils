@@ -45,11 +45,7 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	URL       string `ini:"url"`
-	Instance  string `ini:"instance"`
-	IAMAuth   bool   `ini:"iam-auth"`
-	PrivateIP bool   `ini:"private-ip"`
-
+	URL         string `ini:"url"`
 	TableName   string `ini:"table-name"`
 	CreateTable bool   `ini:"create-table"`
 }
@@ -67,7 +63,6 @@ func (cfg *Config) Validate() error {
 func (cfg *DatabaseConfig) Validate() error {
 	var err error
 	err = multierr.Append(err, required("database-url", cfg.URL))
-	err = multierr.Append(err, required("database-instance", cfg.Instance))
 	err = multierr.Append(err, required("table-name", cfg.TableName))
 	return err
 }
@@ -102,10 +97,7 @@ func readEnv(cfg *Config) error {
 	var err error
 	envString(&cfg.SocketPath, "FSID_SOCKET")
 	envString(&cfg.Database.URL, "FSID_DATABASE_URL")
-	envString(&cfg.Database.Instance, "FSID_DATABASE_INSTANCE")
 	envString(&cfg.Database.TableName, "FSID_TABLE_NAME")
-	err = multierr.Append(err, envBool(&cfg.Database.IAMAuth, "FSID_IAM_AUTH"))
-	err = multierr.Append(err, envBool(&cfg.Database.PrivateIP, "FSID_PRIVATE_IP"))
 	err = multierr.Append(err, envBool(&cfg.Debug, "FSID_DEBUG"))
 	err = multierr.Append(err, envBool(&cfg.Debug, "FSID_CACHE"))
 	return err

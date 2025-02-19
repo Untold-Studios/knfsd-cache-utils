@@ -48,10 +48,7 @@ func main() {
 	// will overwrite the config with the default values
 	f.StringVar(&cfg.SocketPath, "socket", defaultSocketPath, "")
 	f.StringVar(&cfg.Database.URL, "database-url", "", "")
-	f.StringVar(&cfg.Database.Instance, "database-instance", "", "")
 	f.StringVar(&cfg.Database.TableName, "table-name", "", "")
-	f.BoolVar(&cfg.Database.IAMAuth, "iam-auth", false, "")
-	f.BoolVar(&cfg.Database.PrivateIP, "private-ip", false, "")
 	f.BoolVar(&cfg.Debug, "debug", false, "")
 	f.BoolVar(&cfg.Cache, "cache", true, "")
 
