@@ -152,19 +152,23 @@ build_install_nfs-utils() (
 
 )
 
+# -------------------------------------------------------------------------------------
+# NOTE(Untold): disabling GCP specific features
+# NOTE(Untold): investigate AWS cloudwatch agent for this feature
 # install_stackdriver_agent() installs the Cloud Ops Agent for metrics
-install_stackdriver_agent() {
+# install_stackdriver_agent() {
 
-    begin_command "Installing Cloud Ops Agent dependencies"
-    cd ops-agent
-    curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
-    bash add-google-cloud-ops-agent-repo.sh --also-install --version=2.22.0
-    systemctl disable google-cloud-ops-agent
-    cp google-cloud-ops-agent.conf /etc/logrotate.d/
-    cd ..
-    complete_command
+#     begin_command "Installing Cloud Ops Agent dependencies"
+#     cd ops-agent
+#     curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+#     bash add-google-cloud-ops-agent-repo.sh --also-install --version=2.22.0
+#     systemctl disable google-cloud-ops-agent
+#     cp google-cloud-ops-agent.conf /etc/logrotate.d/
+#     cd ..
+#     complete_command
 
-}
+# }
+# -------------------------------------------------------------------------------------
 
 # install_golang() installs golang
 install_golang() {
@@ -232,59 +236,62 @@ install_netapp_exports() (
     complete_command
 )
 
-download_kernel() (
-    begin_command "Downloading kernel"
-    cd kernel
-    git clone --depth 1 --branch cod/mainline/v6.4 git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack ubuntu-6.4
-    complete_command
-)
+# -------------------------------------------------------------------------------------
+# NOTE(Untold): disabling GCP specific features
+# download_kernel() (
+#     begin_command "Downloading kernel"
+#     cd kernel
+#     git clone --depth 1 --branch cod/mainline/v6.4 git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack ubuntu-6.4
+#     complete_command
+# )
 
-build_kernel() (
-    begin_command "Building kernel"
+# build_kernel() (
+#     begin_command "Building kernel"
 
-    cd kernel/ubuntu-6.4
+#     cd kernel/ubuntu-6.4
 
-    quilt import "$patches"/kernel/*.patch
-    quilt push -a
+#     quilt import "$patches"/kernel/*.patch
+#     quilt push -a
 
-    # Replace generic kernel config with amd64-gcp.
-    # The Ubuntu build process generates the config using these annotation
-    # files to provide a consistent config. Include the annotation overrides
-    # used by the GCP flavour of the Ubuntu kernel.
-    mv debian.master/config/annotations debian.master/config/generic
-    cp ../annotations ../gcp debian.master/config/
+#     # Replace generic kernel config with amd64-gcp.
+#     # The Ubuntu build process generates the config using these annotation
+#     # files to provide a consistent config. Include the annotation overrides
+#     # used by the GCP flavour of the Ubuntu kernel.
+#     mv debian.master/config/annotations debian.master/config/generic
+#     cp ../annotations ../gcp debian.master/config/
 
-    # Rename the flavour from generic to knfsd to make it easier to check that
-    # the custom kernel is in use.
-    mv debian.master/abi/amd64/generic debian.master/abi/amd64/knfsd
-    mv debian.master/abi/amd64/generic.compiler debian.master/abi/amd64/knfsd.compiler
-    mv debian.master/abi/amd64/generic.modules debian.master/abi/amd64/knfsd.modules
-    mv debian.master/abi/amd64/generic.retpoline debian.master/abi/amd64/knfsd.retpoline
-    mv debian.master/control.d/generic.inclusion-list debian.master/control.d/knfsd.inclusion-list
-    mv debian.master/control.d/vars.generic debian.master/control.d/vars.knfsd
-    cp ../amd64.mk debian.master/rules.d/
+#     # Rename the flavour from generic to knfsd to make it easier to check that
+#     # the custom kernel is in use.
+#     mv debian.master/abi/amd64/generic debian.master/abi/amd64/knfsd
+#     mv debian.master/abi/amd64/generic.compiler debian.master/abi/amd64/knfsd.compiler
+#     mv debian.master/abi/amd64/generic.modules debian.master/abi/amd64/knfsd.modules
+#     mv debian.master/abi/amd64/generic.retpoline debian.master/abi/amd64/knfsd.retpoline
+#     mv debian.master/control.d/generic.inclusion-list debian.master/control.d/knfsd.inclusion-list
+#     mv debian.master/control.d/vars.generic debian.master/control.d/vars.knfsd
+#     cp ../amd64.mk debian.master/rules.d/
 
-    fakeroot debian/rules clean
-    # Need to ignore build dependency checks (-d) as this version of Ubuntu is
-    # missing bindgen-0.56.
-    dpkg-buildpackage -uc -ui -b -d
+#     fakeroot debian/rules clean
+#     # Need to ignore build dependency checks (-d) as this version of Ubuntu is
+#     # missing bindgen-0.56.
+#     dpkg-buildpackage -uc -ui -b -d
 
-    cd ..
-    rm -rf ubuntu-6.4
+#     cd ..
+#     rm -rf ubuntu-6.4
 
-    complete_command
-)
+#     complete_command
+# )
 
-install_kernel() (
-    begin_command "Installing kernel"
-    cd kernel
-    apt-get install -y \
-        ./linux-headers-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb \
-        ./linux-headers-6.4.0-060400_6.4.0-060400.202306271339_all.deb \
-        ./linux-image-unsigned-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb \
-        ./linux-modules-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb
-    complete_command
-)
+# install_kernel() (
+#     begin_command "Installing kernel"
+#     cd kernel
+#     apt-get install -y \
+#         ./linux-headers-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb \
+#         ./linux-headers-6.4.0-060400_6.4.0-060400.202306271339_all.deb \
+#         ./linux-image-unsigned-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb \
+#         ./linux-modules-6.4.0-060400-knfsd_6.4.0-060400.202306271339_amd64.deb
+#     complete_command
+# )
+# -------------------------------------------------------------------------------------
 
 # copy_config() copies the NFS Server configuration
 copy_config() {
@@ -300,16 +307,16 @@ install_build_dependencies
 install_cachefilesd
 download_nfs-utils
 build_install_nfs-utils
-install_stackdriver_agent
+# install_stackdriver_agent  # NOTE(Untold): disabling GCP specific features
 install_golang
 install_fsidd_service
 install_knfsd_agent
 install_knfsd_metrics_agent
 install_filter_exports
 install_netapp_exports
-download_kernel
-build_kernel
-install_kernel
+# download_kernel  # NOTE(Untold): disabling GCP specific features
+# build_kernel  # NOTE(Untold): disabling GCP specific features
+# install_kernel  # NOTE(Untold): disabling GCP specific features
 copy_config
 
 echo
