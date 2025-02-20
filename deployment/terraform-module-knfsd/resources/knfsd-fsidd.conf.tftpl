@@ -1,7 +1,7 @@
 socket=/run/fsidd.sock
 
 [database]
-postgresql://${sql_user}:${sql_password}@${database_hostname}:${database_port}/${database_name}
+url=postgresql://${sql_user}:${sql_password}@${database_hostname}:${database_port}/${database_name}?sslmode=require
 table-name=fsids
 create-table=true
 
