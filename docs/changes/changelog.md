@@ -1,3 +1,7 @@
+# 2025-02-21
+
+* (Untold Studios) Remove requirement for GCP cloudsql database for knsfd-fsidd service
+
 # v1.0.0-beta8
 
 * Fetch Ubuntu Kernel source from launchpad

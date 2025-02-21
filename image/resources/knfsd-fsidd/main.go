@@ -14,6 +14,15 @@
  limitations under the License.
 */
 
+/*
+ Modifications have been made by Untold Studios on 2025-02-21.
+
+ Changes include:
+ - Removing requirements for GCP cloudsql
+
+ The original project is licensed under the Apache License 2.0.
+*/
+
 package main
 
 import (
