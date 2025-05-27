@@ -1,3 +1,35 @@
+# v1.0.0
+
+* Update to Ubuntu 24.04 LTS (Noble Numbat) with kernel 6.11.0
+* Disable unattended-upgrade.service
+* Change default build machine type to e2-standard-4
+* Update minimum Terraform version to 1.5
+* Update knfsd metrics agent to support v6.6+ kernel versions
+
+## Update to Ubuntu 24.04 LTS (Noble Numbat) with kernel 6.11.0
+
+Update the image to use Ubuntu 24.04 LTS (Noble Numbat). The GCP image we're using comes with the 6.11.0 HWE (Hardware Enablement) Ubuntu 24.04 kernel installed. This fixes some issues with CacheFiles that were present in the original 6.8 kernel.
+
+## Disable unattended-upgrade.service
+
+There is a known issue in the 6.11.0 kernel that can cause a kernel panic when the NFS server is restarted due to a race condition. This issue is fixed in later kernels (tested with 6.14.6 mainline), but these kernels are not yet available for Ubuntu 24.04.
+
+In normal operation the NFS server will not be restarted while the proxy is running. The `unattended-upgrade.service` can trigger a restart of the NFS server if it updates any of the NFS server packages, or libraries the NFS server relies on.
+
+Disabling the `unattended-upgrade.service` to prevent restarting the NFS server. Security and OS updates can be managed by building new images using the latest GCP Ubuntu 24.04 image (update the `source_image` in `image/nfs-proxy.pkr.hcl`).
+
+## Change default build machine type to e2-standard-4
+
+The more powerful machine type is no longer required when building an image as we're not compiling a custom kernel.
+
+## Update minimum Terraform version to 1.5
+
+When changing the network variables to use self links the Terraform code was  changed to use the `strcontains` function to aid with backwards compatibility so that existing configurations could continue to use simple names. This function was not added until Terraform 1.5.
+
+## Update knfsd metrics agent to support v6.6+ kernel versions
+
+The 6.6 kernel introduced a new `wdeleg_getattr` metric to the `/proc/net/rpc/nfsd` file. This was not supported by the 0.10.1 Prometheus ProcFS parser. Updated the parser to 0.15.1 to support the new attribute.
+
 # 2025-02-21
 
 * (Untold Studios) Remove requirement for GCP cloudsql database for knsfd-fsidd service
